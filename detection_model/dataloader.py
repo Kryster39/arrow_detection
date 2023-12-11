@@ -25,16 +25,19 @@ def blur_and_noise(img, blur=5, noise_level=(0, 50)):
 
 class DataLoader():
     def __init__(self, dataset_path):
-        train_data = glob(os.path.join(dataset_path, 'train', 'label_*.png'))
-        test_data = glob(os.path.join(dataset_path, 'test', 'label_*.png'))
+        self.train_file = glob(os.path.join(dataset_path, 'train', 'label_*.png'))
+        self.test_file = glob(os.path.join(dataset_path, 'test', 'label_*.png'))
 
         self.train_data = []
-        for tnd in train_data:
-            image = cv2.imread(os.path.join(os.path.dirname(tnd), os.path.basename(tnd)[6:]), cv2.IMREAD_COLOR)[:,:,::-1]
-            label = cv2.imread(tnd, cv2.IMREAD_GRAYSCALE)
-            self.train_data.append((image, label))
+        self.test_data = []
 
     def get_train_data(self, batch_size=4):
+        if not self.train_data:
+            for tnd in self.train_file:
+                image = cv2.imread(os.path.join(os.path.dirname(tnd), os.path.basename(tnd)[6:]), cv2.IMREAD_COLOR)[:,:,::-1]
+                label = cv2.imread(tnd, cv2.IMREAD_GRAYSCALE)
+                self.train_data.append((image, label))
+
         shuffle(self.train_data)
         for batch in range(0, len(self.train_data), batch_size):
             images = []
@@ -66,3 +69,29 @@ class DataLoader():
                 #outputs.append((image, label))
             #print(len(outputs), len(outputs[0]), outputs[0][1].shape)
             yield (np.array(images), np.array(labels))
+
+    def get_test_data(self, num=-1):
+        if not self.test_data:
+            for tsd in self.test_file:
+                image = cv2.imread(os.path.join(os.path.dirname(tsd), os.path.basename(tsd)[6:]), cv2.IMREAD_COLOR)[:,:,::-1]
+                label = cv2.imread(tsd, cv2.IMREAD_GRAYSCALE)
+                self.test_data.append((image, label))
+
+        if num==-1:
+            num = len(self.test_data)
+
+        images = []
+        labels = []
+        for image, label in self.test_data[:num]:
+
+            #one hot
+            one_hot_label = np.zeros((label.shape[0], label.shape[1], 7))
+            for i in range(7):
+                one_hot_label[:,:,i][label==i] = 1
+            label = one_hot_label
+
+            images.append(image)
+            labels.append(label)
+            #outputs.append((image, label))
+        #print(len(outputs), len(outputs[0]), outputs[0][1].shape)
+        return (np.array(images), np.array(labels))
