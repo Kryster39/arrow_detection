@@ -1,5 +1,5 @@
 from glob import glob
-from random import randint
+from random import randint, shuffle
 
 import os
 import sys
@@ -35,6 +35,7 @@ class DataLoader():
             self.train_data.append((image, label))
 
     def get_train_data(self, batch_size=4):
+        shuffle(self.train_data)
         for batch in range(0, len(self.train_data), batch_size):
             images = []
             labels = []
@@ -45,16 +46,23 @@ class DataLoader():
                 label = crop_and_resize(label, crop=crop)
 
                 #blur and noise
-                arg = ( randint(0,10), randint(-10,10), randint(0,100) )
+                arg = ( randint(1,10), randint(-10,10), randint(0,100) )
                 image = blur_and_noise(image, blur=arg[0], noise_level=arg[1:])
 
+                #one hot
+                one_hot_label = np.zeros((label.shape[0], label.shape[1], 7))
+                for i in range(7):
+                    one_hot_label[:,:,i][label==i] = 1
+                label = one_hot_label
                 #image[:,:,0][label==0] = 0
                 #image[:,:,1][label==0] = 0
                 #image[:,:,2][label==0] = 0
-                cv2.imshow('My Image', image)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                #cv2.imshow('My Image', image)
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
 
                 images.append(image)
                 labels.append(label)
-            yield (images, labels)
+                #outputs.append((image, label))
+            #print(len(outputs), len(outputs[0]), outputs[0][1].shape)
+            yield (np.array(images), np.array(labels))
