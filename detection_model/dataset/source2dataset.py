@@ -30,9 +30,10 @@ for image in images:
             int((label_range[1]+label_range[3]/2)*shape[0]) ]
         lbl[label_range[2]:label_range[3], label_range[0]:label_range[1]] = class_trns[label_class]#*40
 
-    save_image = Image.fromarray(img[700:900, 620:1300])
+    #64*3=192 64*11=704
+    save_image = Image.fromarray(img[700:892, 610:1314])
     save_image.save(os.path.join(sys.argv[2], os.path.basename(image)))
-    save_image = Image.fromarray(lbl[700:900, 620:1300].astype(np.uint8))
+    save_image = Image.fromarray(lbl[700:892, 610:1314].astype(np.uint8))
     save_image.save(os.path.join(sys.argv[2], 'label_'+os.path.basename(image)))
     '''
     fig, ax = plt.subplots()

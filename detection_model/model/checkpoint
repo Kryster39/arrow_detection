@@ -1,2 +1,2 @@
-model_checkpoint_path: "epoch_5.weights"
-all_model_checkpoint_paths: "epoch_5.weights"
+model_checkpoint_path: "gray_50"
+all_model_checkpoint_paths: "gray_50"

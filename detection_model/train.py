@@ -16,8 +16,8 @@ DL = DataLoader(dataset_path=sys.argv[1])
 epoches = int(sys.argv[3])
 for i in range(epoches):
     print("Epoch {}/{}".format(i+1, epoches))
-    model.fit(DL.get_train_data(batch_size=int(sys.argv[2])))
-
+    history = model.fit(DL.get_train_data(batch_size=int(sys.argv[2])))
+    #print(history.history['loss'])
 
 if len(sys.argv) > 4:
     model.save_weights(sys.argv[4])

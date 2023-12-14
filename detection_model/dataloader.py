@@ -34,7 +34,7 @@ class DataLoader():
     def get_train_data(self, batch_size=4):
         if not self.train_data:
             for tnd in self.train_file:
-                image = cv2.imread(os.path.join(os.path.dirname(tnd), os.path.basename(tnd)[6:]), cv2.IMREAD_COLOR)[:,:,::-1]
+                image = cv2.imread(os.path.join(os.path.dirname(tnd), os.path.basename(tnd)[6:]), cv2.IMREAD_GRAYSCALE)
                 label = cv2.imread(tnd, cv2.IMREAD_GRAYSCALE)
                 self.train_data.append((image, label))
 
@@ -44,12 +44,12 @@ class DataLoader():
             labels = []
             for image, label in self.train_data[batch:batch+batch_size]:
                 #crop and resize
-                crop = [randint(0,60), randint(120,200), randint(0,60), randint(600,680)]
+                crop = [randint(0,60), randint(120,192), randint(0,60), randint(600,704)]
                 image = crop_and_resize(image, crop=crop)
                 label = crop_and_resize(label, crop=crop)
 
                 #blur and noise
-                arg = ( randint(1,10), randint(-10,10), randint(0,100) )
+                arg = ( randint(1,10), randint(-10,10), randint(0,40) )
                 image = blur_and_noise(image, blur=arg[0], noise_level=arg[1:])
 
                 #one hot
@@ -73,7 +73,7 @@ class DataLoader():
     def get_test_data(self, num=-1):
         if not self.test_data:
             for tsd in self.test_file:
-                image = cv2.imread(os.path.join(os.path.dirname(tsd), os.path.basename(tsd)[6:]), cv2.IMREAD_COLOR)[:,:,::-1]
+                image = cv2.imread(os.path.join(os.path.dirname(tsd), os.path.basename(tsd)[6:]), cv2.IMREAD_GRAYSCALE)
                 label = cv2.imread(tsd, cv2.IMREAD_GRAYSCALE)
                 self.test_data.append((image, label))
 
