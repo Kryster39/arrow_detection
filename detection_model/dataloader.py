@@ -7,11 +7,14 @@ import numpy as np
 import cv2
 
 #[0:200, 0:680] -> [60:120, 60:600]
-def crop_and_resize(img, crop=[60,120, 60,600]):
+def crop_and_resize(img, crop=[60,120, 60,600], label=False):
     h, w = img.shape[0], img.shape[1]
     img = img[crop[0]:crop[1], crop[2]:crop[3]]
     
-    img = cv2.resize( img, (w, h))
+    if not label:
+        img = cv2.resize( img, (w, h))
+    else:
+        img = cv2.resize( img, (w, h), interpolation=cv2.INTER_NEAREST)
     return img
 
 def blur_and_noise(img, blur=5, noise_level=(0, 50)):
@@ -46,7 +49,7 @@ class DataLoader():
                 #crop and resize
                 crop = [randint(0,60), randint(120,192), randint(0,60), randint(600,704)]
                 image = crop_and_resize(image, crop=crop)
-                label = crop_and_resize(label, crop=crop)
+                label = crop_and_resize(label, crop=crop, label=True)
 
                 #blur and noise
                 arg = ( randint(1,10), randint(-10,10), randint(0,40) )
@@ -57,6 +60,9 @@ class DataLoader():
                 for i in range(7):
                     one_hot_label[:,:,i][label==i] = 1
                 label = one_hot_label
+
+                kernel = np.ones((3,3))
+                label = cv2.dilate(label, kernel=kernel)
                 #image[:,:,0][label==0] = 0
                 #image[:,:,1][label==0] = 0
                 #image[:,:,2][label==0] = 0
@@ -89,6 +95,9 @@ class DataLoader():
             for i in range(7):
                 one_hot_label[:,:,i][label==i] = 1
             label = one_hot_label
+            
+            kernel = np.ones((3,3))
+            label = cv2.dilate(label, kernel=kernel)
 
             images.append(image)
             labels.append(label)

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Concatenate, MaxPooling2D
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Concatenate, MaxPooling2D, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import CategoricalCrossentropy
@@ -18,8 +18,9 @@ else:
 
 def Block_ccp(_input, filters=8, kernel_size=5):
     conv2d_1 = Conv2D(filters, kernel_size=kernel_size, padding='same', activation='relu')(_input)
-    feature = Conv2D(filters, kernel_size=1, padding='same', activation='relu')(conv2d_1)
-    pooling = MaxPooling2D()(feature)
+    conv2d_2 = Conv2D(filters, kernel_size=1, padding='same', activation='relu')(conv2d_1)
+    feature = Dropout(0.2)(conv2d_2)
+    pooling = MaxPooling2D()(conv2d_2)
     return feature, pooling
 
 def Block_ccp_u(_input, conv_feature, filters=8, kernel_size=5):
@@ -30,28 +31,24 @@ def Block_ccp_u(_input, conv_feature, filters=8, kernel_size=5):
 
 def ArrowDetectionModel():
     _input = Input(shape=(192, 704, 1))
-    f1, block_1 = Block_ccp(_input, filters=8, kernel_size=3)
-    f2, block_2 = Block_ccp(block_1, filters=16, kernel_size=3)
+    f1, block_1 = Block_ccp(_input, filters=8, kernel_size=5)
+    f2, block_2 = Block_ccp(block_1, filters=16, kernel_size=5)
     f3, block_3 = Block_ccp(block_2, filters=32, kernel_size=3)
     f4, block_4 = Block_ccp(block_3, filters=64, kernel_size=3)
-    f5, block_5 = Block_ccp(block_4, filters=128, kernel_size=3)
-    f6, block_6 = Block_ccp(block_5, filters=256, kernel_size=3)
 
-    bottleneck_1 = Conv2D(512, kernel_size=1, padding='same', activation='relu')(block_6)
-    bottleneck_2 = Conv2D(256, kernel_size=1, padding='same', activation='relu')(bottleneck_1)
+    bottleneck_1 = Conv2D(128, kernel_size=1, padding='same', activation='relu')(block_4)
+    bottleneck_2 = Conv2D(64, kernel_size=1, padding='same', activation='relu')(bottleneck_1)
 
-    block_u1 = Block_ccp_u(bottleneck_2, f6, filters=256, kernel_size=3)
-    block_u2 = Block_ccp_u(block_u1, f5, filters=128, kernel_size=3)
-    block_u3 = Block_ccp_u(block_u2, f4, filters=64, kernel_size=3)
-    block_u4 = Block_ccp_u(block_u3, f3, filters=32, kernel_size=3)
-    block_u5 = Block_ccp_u(block_u4, f2, filters=16, kernel_size=3)
-    block_u6 = Block_ccp_u(block_u5, f1, filters=8, kernel_size=3)
+    block_u1 = Block_ccp_u(bottleneck_2, f4, filters=64, kernel_size=3)
+    block_u2 = Block_ccp_u(block_u1, f3, filters=32, kernel_size=3)
+    block_u3 = Block_ccp_u(block_u2, f2, filters=16, kernel_size=5)
+    block_u4 = Block_ccp_u(block_u3, f1, filters=8, kernel_size=5)
 
-    output = Conv2D(filters=7, kernel_size=1, padding='same', activation='softmax')(block_u6)
+    output = Conv2D(filters=7, kernel_size=1, padding='same', activation='softmax')(block_u4)
 
     model = Model(inputs=_input, outputs=output)
     
     model.compile(
-        optimizer=Adam(),
+        optimizer=Adam(learning_rate=0.00001), #default 0.001
         loss=CategoricalCrossentropy())
     return model
