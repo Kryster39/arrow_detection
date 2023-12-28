@@ -52,7 +52,7 @@ class DataLoader():
                 label = crop_and_resize(label, crop=crop, label=True)
 
                 #blur and noise
-                arg = ( randint(1,10), randint(-10,10), randint(0,40) )
+                arg = ( randint(1,5), randint(-5,5), randint(0,10) )
                 image = blur_and_noise(image, blur=arg[0], noise_level=arg[1:])
 
                 #one hot
