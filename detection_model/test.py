@@ -23,11 +23,12 @@ else:
 predicts = model.predict(images)
 
 for i, (predict, label) in enumerate(zip(predicts, labels)):
-    pred = np.argmax(predict, axis=-1)
+    pred = np.reshape(predict, (192, 704, 7))
+    pred = np.argmax(pred, axis=-1)
     pred = pred.astype(np.uint8)*40
 
-    lbl = np.argmax(label, axis=-1)
-    lbl = lbl.astype(np.uint8)*40
+    #lbl = np.argmax(label, axis=-1)
+    lbl = label.astype(np.uint8)*40
 
     file_name = DL.test_file[i]
     cv2.imwrite(os.path.join(sys.argv[2], "pred_"+os.path.basename(file_name)[6:]),

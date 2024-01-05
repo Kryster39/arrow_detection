@@ -39,6 +39,8 @@ class DataLoader():
             for tnd in self.train_file:
                 image = cv2.imread(os.path.join(os.path.dirname(tnd), os.path.basename(tnd)[6:]), cv2.IMREAD_GRAYSCALE)
                 label = cv2.imread(tnd, cv2.IMREAD_GRAYSCALE)
+                #if 1 not in label and 4 not in label:
+                #    continue
                 self.train_data.append((image, label))
 
         shuffle(self.train_data)
@@ -56,6 +58,7 @@ class DataLoader():
                 image = blur_and_noise(image, blur=arg[0], noise_level=arg[1:])
 
                 #one hot
+                '''
                 one_hot_label = np.zeros((label.shape[0], label.shape[1], 7))
                 for i in range(7):
                     one_hot_label[:,:,i][label==i] = 1
@@ -63,6 +66,10 @@ class DataLoader():
 
                 kernel = np.ones((3,3))
                 label = cv2.dilate(label, kernel=kernel)
+                label = np.reshape(label, (label.shape[0]*label.shape[1], 7))
+                '''
+                label = np.reshape(label, (label.shape[0]*label.shape[1]))
+                
                 #image[:,:,0][label==0] = 0
                 #image[:,:,1][label==0] = 0
                 #image[:,:,2][label==0] = 0
@@ -91,6 +98,7 @@ class DataLoader():
         for image, label in self.test_data[:num]:
 
             #one hot
+            '''
             one_hot_label = np.zeros((label.shape[0], label.shape[1], 7))
             for i in range(7):
                 one_hot_label[:,:,i][label==i] = 1
@@ -98,7 +106,7 @@ class DataLoader():
             
             kernel = np.ones((3,3))
             label = cv2.dilate(label, kernel=kernel)
-
+            '''
             images.append(image)
             labels.append(label)
             #outputs.append((image, label))
