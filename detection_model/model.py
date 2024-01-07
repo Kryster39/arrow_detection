@@ -1,9 +1,9 @@
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Concatenate, MaxPooling2D, Dropout, LeakyReLU, Softmax, BatchNormalization, Reshape
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Concatenate, MaxPooling2D, Dropout, LeakyReLU, Softmax, BatchNormalization
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import CategoricalCrossentropy, SparseCategoricalCrossentropy
+from tensorflow.keras.losses import CategoricalCrossentropy
 
 import os
 import sys
@@ -57,13 +57,12 @@ def ArrowDetectionModel():
     block_u3 = Block_ccp_u(block_u2, f2, filters=16, kernel_size=5)
     block_u4 = Block_ccp_u(block_u3, f1, filters=8, kernel_size=5)
 
-    smx = Conv2D(filters=7, kernel_size=1, padding='same', activation='softmax')(block_u4)
-    #smx = Softmax()(sig)
-    output = Reshape((192*704, 7))(smx)
+    sig = Conv2D(filters=7, kernel_size=1, padding='same', activation='sigmoid')(block_u4)
+    output = Softmax()(sig)
 
     model = Model(inputs=_input, outputs=output)
     
     model.compile(
-        optimizer=Adam(learning_rate=0.005), #default 0.001
-        loss=SparseCategoricalCrossentropy())
+        optimizer=Adam(learning_rate=0.0001), #default 0.001
+        loss=CategoricalCrossentropy())
     return model
