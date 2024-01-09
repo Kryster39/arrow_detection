@@ -3,6 +3,9 @@ import pygetwindow as gw
 import time
 
 class WindowsHandler():
+    def __init__(self):
+        self.window_titles = gw.getAllTitles()
+
     def getAllTitles(self):
         self.window_titles = gw.getAllTitles()
 
@@ -20,6 +23,8 @@ class WindowsHandler():
     #pyautogui.press('w')
     #pyautogui.hotkey('ctrl', 'c')
     #time.sleep(2)
+        
+'''
 window_titles = gw.getAllTitles()
 tr = 0
 for i,title in enumerate(window_titles):
@@ -27,14 +32,11 @@ for i,title in enumerate(window_titles):
         tr = i
         print(i, title)
 
-#i = int(input())
-#print(window_titles[i])
-
 target_window = gw.getWindowsWithTitle(window_titles[tr])[0]
 time.sleep(2)
 target_window.activate()
 time.sleep(2)
 pyautogui.press('w')
-#pyautogui.write(text_to_type)
 
 time.sleep(2)
+'''
