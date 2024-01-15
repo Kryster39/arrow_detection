@@ -44,13 +44,18 @@ class autoTeachingBoard():
             self.check_button[i].grid(row=2, column=3*i, columnspan=3)
 
         # Setting
-        self.setting = tk.Button(self.root, text="設定", command=lambda: self.on_button_click(0))
-        self.setting.grid(row=0, column=9, pady=20)
+        self.setting_button = tk.Button(self.root, text="設定", command=lambda: self.on_button_click(0))
+        self.setting_button.grid(row=0, column=9, pady=20)
 
+        self.refresh_button = tk.Button(self.root, text="重新偵測", command=lambda: self.refresh())
+        self.refresh_button.grid(row=1, column=9, pady=20)
+
+        # Demonstrate
         image_path = r"D:/github/arrow_detection/detection_model/source/0.png"
         image = Image.open(image_path)
         image_size_ratio = image.size[1]/image.size[0]
-        image = image.resize((1000, int(1000*image_size_ratio)))
+        self.image_size = (1000, int(1000*image_size_ratio))
+        image = image.resize(self.image_size)
         self.image = ImageTk.PhotoImage(image)
 
         self.game_image = tk.Canvas(self.root, width=1000, height=int(1000*image_size_ratio))
@@ -75,9 +80,19 @@ class autoTeachingBoard():
             self.enable_button[th].config(text="啟用中", bg="green")
     
     def check(self, th=0):
-        pass
+        #screenshot = self.handler.targetWindow(self.combobox[th].get())
+        screenshot = self.handler.background_screenshot(self.combobox[th].get())
+        image = Image.fromarray(screenshot)
+        #gray_image = color_image.convert('L')
+        image = image.resize(self.image_size)
+        self.image = ImageTk.PhotoImage(image)
+        self.game_image.itemconfig(self.image_item, image=self.image)
         #check window image
     
+    def refresh(self):
+        self.handler.getAllTitles()
+        self.refreshTitles()
+
     def refreshTitles(self):
         game_list = [*filter(lambda x: "九陰真經" in x or "9yin" in x, self.handler.window_titles)]
         for i in range(3):
