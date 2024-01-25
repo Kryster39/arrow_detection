@@ -69,10 +69,32 @@ int main(){
       
     while(interception_receive(context, device = interception_wait(context), (InterceptionStroke*)&stroke, 1) > 0)
     {
-        int array[16] = {};
-        int len = 0;
+        printf("console application!\n");
+        fflush(stdout);
 
-        fread(array, sizeof(int), 16, stdin);
+        int* array = NULL;
+        int len = 0;
+        int input;
+
+        while(1){
+            scanf("%d", &input);
+
+            if (input == 0)
+                break;
+
+            len += 1;
+            array = realloc(array, len * sizeof(int));
+
+            if (array == NULL) {
+                printf("Memory allocation failed.\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+        //fread(array, sizeof(int), 16, stdin);
+
+        printf("I got something\n");
+        fflush(stdout);
+        return 0;
         printf("get");
         for(int i=0;i<16;i++){
             if (array[i] == 0){
@@ -81,8 +103,9 @@ int main(){
             }
             printf(" %d", array[i]);
         }
-        printf("\n");
-        //return 0;
+        printf("over\n");
+        fflush(stdout);
+        return 0;
 
         boolean bpflag = (array[0]>=5); //j or k
         printf("%d", bpflag); 
