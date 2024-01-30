@@ -1,6 +1,5 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<time.h> 
 #include<windows.h>
 #include"interception.h"
 #include"utils.h"
@@ -57,8 +56,6 @@ DWORD WINAPI ThreadMethod()
 }
 
 int main(){
-    srand( time(NULL) );
-
     raise_process_priority();
 
     context = interception_create_context();
@@ -66,67 +63,43 @@ int main(){
     interception_set_filter(context, interception_is_keyboard, INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP);
   
     InterceptionKeyStroke check_code;
-      
-    while(interception_receive(context, device = interception_wait(context), (InterceptionStroke*)&stroke, 1) > 0)
+    
+    int received = interception_receive(context, device = interception_wait(context), (InterceptionStroke*)&stroke, 1);
+    printf("console application!\n");
+    fflush(stdout);
+    while(received > 0)
     {
-        printf("console application!\n");
-        fflush(stdout);
-
-        int* array = NULL;
-        int len = 0;
+        int len;
+        scanf("%d", &len);
+        int array[len], inter_time[len], outer_time[len];
         int input;
 
-        while(1){
-            scanf("%d", &input);
+        for(int i=0;i<len;i++)
+            scanf("%d", &array[i]);
+        for(int i=0;i<len;i++)
+            scanf("%d", &inter_time[i]);
+        for(int i=0;i<len;i++)
+            scanf("%d", &outer_time[i]);
 
-            if (input == 0)
-                break;
+        for(int i=0;i<len;i++){
+            Sleep(outer_time[i]);
 
-            len += 1;
-            array = realloc(array, len * sizeof(int));
+            stroke.code = number2key[array[i]];
+            stroke.state = INTERCEPTION_KEY_DOWN;
+            interception_send(context, device, (InterceptionStroke*)&stroke, 1);
 
-            if (array == NULL) {
-                printf("Memory allocation failed.\n");
-                exit(EXIT_FAILURE);
-            }
+            Sleep(inter_time[i]);
+
+            stroke.state = INTERCEPTION_KEY_UP;
+            interception_send(context, device, (InterceptionStroke*)&stroke, 1);
+
         }
-        //fread(array, sizeof(int), 16, stdin);
 
-        printf("I got something\n");
+        printf("done\n");
         fflush(stdout);
-        return 0;
-        printf("get");
-        for(int i=0;i<16;i++){
-            if (array[i] == 0){
-                len = i;
-                break;
-            }
-            printf(" %d", array[i]);
-        }
-        printf("over\n");
-        fflush(stdout);
-        return 0;
 
-        boolean bpflag = (array[0]>=5); //j or k
-        printf("%d", bpflag); 
-        int inter_key_time[len];
-        int outer_key_time[len];
-        inter_key_time[0] = rand()%20+10;
-        outer_key_time[0] = rand()%350+930;
-        for(int i=1;i<len;i++){
-            inter_key_time[i] = rand()%20+10;
-
-            if(bpflag && array[i]<5){
-                outer_key_time[i] = rand()%250+660;
-                bpflag = FALSE;
-            }
-            else
-                outer_key_time[i] = rand()%250+100;
-            if(array[i]>=5)
-                bpflag = TRUE;
-        }
-
-        ////////////////////////////////////
+        ///////////////////////////////////
+        /*
         stroke.code = SCANCODE_X;
         stroke.state = INTERCEPTION_KEY_DOWN;
         interception_send(context, device, (InterceptionStroke*)&stroke, 1);
@@ -140,5 +113,6 @@ int main(){
             interception_send(context, device, (InterceptionStroke*)&stroke, 1);
                 
         if (check_code.code == SCANCODE_ESC) break;
+        */
     }
 }

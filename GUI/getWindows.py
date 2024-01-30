@@ -1,7 +1,7 @@
 import win32gui
 import win32ui
 import win32con
-import win32api
+import win32com.client
 import pydirectinput
 from pynput.keyboard import Key, Controller
 import pygetwindow as gw
@@ -9,30 +9,59 @@ import numpy as np
 import time
 
 class WindowsHandler():
-    def __init__(self):
-        self.window_titles = gw.getAllTitles()
+    def __init__(self, keyword):
+        self.keyword = keyword
+        self.window_title_hwnd = {}
+        #self.window_titles = []
 
     def getAllTitles(self):
-        self.window_titles = gw.getAllTitles()
-
+        titles = gw.getAllTitles()
+        for title in titles:
+            for kw in self.keyword:
+                if kw in title:
+                    prev_title = ""
+                    orgi_title = title
+                    while(title in self.window_title_hwnd.keys()):
+                        prev_title = title
+                        title = title+"#"
+                    if prev_title == "":
+                        hwnd = win32gui.FindWindowEx(0, 0, None, orgi_title)
+                    else:
+                        hwnd = win32gui.FindWindowEx(0, self.window_title_hwnd[prev_title], None, orgi_title)
+                    #self.window_titles.append(title)
+                    self.window_title_hwnd[title] = hwnd
+                    break
+            
     def showAllTitles(self):
         print("Show all window titles")
-        for title in self.window_titles:
+        #for title in self.window_titles:
+        for title in self.window_title_hwnd.keys():
             if title != "" and title != None:
                 print(title)
 
-    '''
-    def targetWindow(self, title):
-        target_window = gw.getWindowsWithTitle(title)[0]
-        window_x, window_y, window_width, window_height = target_window.left, target_window.top, target_window.width, target_window.height
-        screenshot = pyautogui.screenshot(region=(window_x, window_y, window_width, window_height))
-        return screenshot
-    '''
+    def findWindow(self, title):
+        num = 0
+        print(title)
+        while(title[-1]=='#'):
+            num += 1
+            title = title[:-1]
+        
+        hwnd = 0
+        for i in range(num):
+            hwnd = win32gui.FindWindowEx(0, hwnd, None, title)
+            print(hwnd)
+            if hwnd == 0:
+                break
+        return hwnd
 
     def background_screenshot(self, title):
-        hwnd = win32gui.FindWindow(None, title)
+        #hwnd = win32gui.FindWindow(None, title)
+        #hwnd = self.findWindow(title)
+        hwnd = self.window_title_hwnd[title]
         left, top, right, bot = win32gui.GetWindowRect(hwnd)
         w, h = right - left, bot - top
+        #win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+        #win32gui.SetForegroundWindow(hwnd)
         
         wDC = win32gui.GetWindowDC(hwnd)
         dcObj = win32ui.CreateDCFromHandle(wDC)
@@ -52,4 +81,13 @@ class WindowsHandler():
         win32gui.DeleteObject(dataBitMap.GetHandle())
 
         return img
+
+    def set_foreground(self, title):
+        #hwnd = win32gui.FindWindow(None, title)
+        #hwnd = self.findWindow(title)
+        hwnd = self.window_title_hwnd[title]
+        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+        shell = win32com.client.Dispatch("WScript.Shell")
+        shell.SendKeys('%')
+        win32gui.SetForegroundWindow(hwnd)
         

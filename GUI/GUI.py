@@ -15,6 +15,8 @@ def detectArrow(model, image, code=True):
     pred = np.array(image.convert('L'))[np.newaxis,:,:,np.newaxis]
     pred = model.predict(pred)
     pred = np.reshape(pred, (192, 704, 7))
+    if np.sum(pred) < 400:
+        return 0
     pred = np.argmax(pred, axis=-1)
 
     arrow_list = []
@@ -24,7 +26,7 @@ def detectArrow(model, image, code=True):
         contours, _ = cv2.findContours(zero, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             area = cv2.contourArea(contour)
-            if area < 100:
+            if area < 400:
                 continue
             (x,y), r = cv2.minEnclosingCircle(contour)
             arrow_list.append((x, i+1))
@@ -45,27 +47,27 @@ def keyPressMessageGenerater(key_list):
     bp_flag = False
     if len(key_list) == 0:
         return 0
-    msg = ""
-    inter_key_time = ""
-    outer_key_time = ""
+    msg = " "
+    inter_key_time = " "
+    outer_key_time = " "
 
-    msg += str(key_list[0]) + " "
-    inter_key_time += str(random.randint(10,30)) + " "
-    outer_key_time += str(random.randint(830, 1380)) + " "
+    msg += str(key_list[0])
+    inter_key_time += str(random.randint(10,30))
+    outer_key_time += str(random.randint(530, 980))
     for k in key_list[1:]:
-        msg += str(k) + " "
-        inter_key_time += str(random.randint(10,30)) + " "
+        msg += " " + str(k)
+        inter_key_time += " " + str(random.randint(10,30))
 
         if bp_flag and k < 5: 
-            outer_key_time += str(random.randint(660, 910)) + " "
+            outer_key_time += " " + str(random.randint(320, 710))
             bp_flag = False
         else:
-            outer_key_time += str(random.randint(150, 350)) + " "
+            outer_key_time += " " + str(random.randint(150, 350))
 
         if k >=5:
             bp_flag = True
     
-    return msg + "0 " + inter_key_time + "0 " + outer_key_time[:-1] + "\n"
+    return str(len(key_list)) + msg + inter_key_time + outer_key_time + "\n"
 
 class autoTeachingBoard():
     #############################################################
@@ -149,6 +151,7 @@ class autoTeachingBoard():
         self.start_button.grid(row=8, column=9, rowspan=2, columnspan=2,
                                sticky='nsew', padx=20, pady=20)
         self.exit_flag = False
+        self.keypress_lock = threading.Lock()
 
         # Overlay (with starting button)
         self.overlay_visible = tk.BooleanVar()
@@ -182,8 +185,8 @@ class autoTeachingBoard():
     #
     #############################################################
     def getGameWindows(self):
-        self.handler = WindowsHandler()
-        self.refreshTitles()
+        self.handler = WindowsHandler(["九陰真經", "9yin"])
+        self.refresh()
 
     def enable(self, th=0):
         if self.enable_button_state[th].get():
@@ -203,10 +206,8 @@ class autoTeachingBoard():
 
     def refresh(self):
         self.handler.getAllTitles()
-        self.refreshTitles()
-
-    def refreshTitles(self):
-        game_list = [*filter(lambda x: "九陰真經" in x or "9yin" in x, self.handler.window_titles)]
+        #game_list = self.handler.window_titles
+        game_list = list(self.handler.window_title_hwnd.keys())
         for i in range(3):
             self.combobox[i].config(values=game_list)
 
@@ -299,19 +300,25 @@ class autoTeachingBoard():
             img = img.resize((1920, 1080))
             img = img.crop((610,700,1314,892))
             arrow_list = detectArrow(self.model, img, code=True)
-            msg = keyPressMessageGenerater(arrow_list)
+            if arrow_list != 0:
+                msg = keyPressMessageGenerater(arrow_list)
 
-            if self.exit_flag:
-                break
+                self.keypress_lock.acquire()
+                if self.exit_flag:
+                    self.keypress_lock.release()
+                    break
 
-            process.stdin.write(msg)
-            process.stdin.flush()
+                self.handler.set_foreground(self.combobox[th].get())
+                process.stdin.write(msg)
+                process.stdin.flush()
 
-            line = process.stdout.readline()
-            if "failed" in line:
-                break
+                line = process.stdout.readline()
+                if "failed" in line:
+                    break
+                self.keypress_lock.release()
+                time.sleep(15)
 
-            time.sleep(1)
+            time.sleep(0.6)
 
     def keypressFunction(self):
         enable_window = []
@@ -329,7 +336,6 @@ class autoTeachingBoard():
             process.wait()
             return 0
         
-        self.keypress_lock = threading.Lock()
         for i in enable_window:
             command_thread = threading.Thread(target=self.startDetect, 
                                                 args=(i, process))
