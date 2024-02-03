@@ -64,6 +64,6 @@ def ArrowDetectionModel():
     model = Model(inputs=_input, outputs=output)
     
     model.compile(
-        optimizer=Adam(learning_rate=0.005), #default 0.001
+        optimizer=Adam(learning_rate=0.00005), #default 0.001
         loss=SparseCategoricalCrossentropy())
     return model

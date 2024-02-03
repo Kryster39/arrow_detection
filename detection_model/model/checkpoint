@@ -1,2 +1,2 @@
-model_checkpoint_path: "best"
-all_model_checkpoint_paths: "best"
+model_checkpoint_path: "version2_00005_4_145"
+all_model_checkpoint_paths: "version2_00005_4_145"
