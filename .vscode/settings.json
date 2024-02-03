@@ -3,6 +3,9 @@
         "utils.h": "c",
         "interception.h": "c",
         "windows.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "array": "c",
+        "initializer_list": "c",
+        "utility": "c"
     }
 }
