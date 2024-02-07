@@ -123,8 +123,6 @@ class autoTeachingBoard():
         for i in range(3):
             self.combobox[i].set("選擇一個選項")
             self.combobox[i].grid(row=1, column=3*i, columnspan=3, pady=10)
-        #selected_item = self.combobox[th].get()
-        #self.window[th].config(text=f"你選擇了: {selected_item}")
             
         self.check_button = [tk.Button(self.root, text="檢視", command=lambda: self.check(0)),
                              tk.Button(self.root, text="檢視", command=lambda: self.check(1)),
@@ -163,7 +161,7 @@ class autoTeachingBoard():
         self.overlay.place_forget()
 
         # Demonstrate
-        image_path = r"D:/github/arrow_detection/detection_model/source/0.png"
+        image_path = r"detection_model/source/0.png"
         image = Image.open(image_path)
         image_size_ratio = image.size[1]/image.size[0]
         self.image_size = (1000, int(1000*image_size_ratio))
@@ -348,27 +346,6 @@ class autoTeachingBoard():
                 break
             time.sleep(2)
 
-    '''
-    def keypressFunction(self):
-        program_path = 'Interception/keyPress.exe'
-        process = subprocess.Popen([program_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
-        
-        if self.exit_flag:
-            process.terminate()
-            process.wait()
-            return 0
-
-        line = process.stdout.readline()
-        print(line)
-
-        self.keypress_message.destroy()
-
-        process.stdin.write(f"1 2 3 4 5 0\n")
-        process.stdin.flush()
-
-        line = process.stdout.readline()
-        print(line)  
-    '''
     def start(self):
         self.startOverlay()
         if self.start_button_state.get(): # false for not start

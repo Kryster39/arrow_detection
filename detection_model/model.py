@@ -1,13 +1,10 @@
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Concatenate, MaxPooling2D, Dropout, LeakyReLU, Softmax, BatchNormalization, Reshape
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Concatenate, MaxPooling2D, Dropout, LeakyReLU, BatchNormalization, Reshape
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import CategoricalCrossentropy, SparseCategoricalCrossentropy
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
 
 import os
-import sys
-import shutil
 
 os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'

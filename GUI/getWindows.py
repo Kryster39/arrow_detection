@@ -2,11 +2,8 @@ import win32gui
 import win32ui
 import win32con
 import win32com.client
-import pydirectinput
-from pynput.keyboard import Key, Controller
 import pygetwindow as gw
 import numpy as np
-import time
 
 class WindowsHandler():
     def __init__(self, keyword):
