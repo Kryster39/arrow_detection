@@ -1,9 +1,10 @@
-from detection_model.model import ArrowDetectionModel
 from GUI.GUI import autoTeachingBoard
+import onnxruntime
 
-model = ArrowDetectionModel()
-model.load_weights("detection_model/model/best")
+#pyinstaller: pyinstaller -w -p C:\Users\user\anaconda3\envs\Pyinstaller -F .\autoTeaching.py
 
-t = autoTeachingBoard(model)
+session = onnxruntime.InferenceSession("detection_model/best.onnx")
+#model = ArrowDetectionModel()
+#model.load_weights("detection_model/model/best")
 
-#pyinstaller '_pywrap_tensorflow_internal'
+t = autoTeachingBoard(session)

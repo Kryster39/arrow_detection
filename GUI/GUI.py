@@ -11,13 +11,14 @@ import cv2
 
 num2word = {0:'n', 1:'w', 2:'s', 3:'a', 4:'d', 5:'j', 6:'k'}
 
-def detectArrow(model, image, code=True):
-    pred = np.array(image.convert('L'))[np.newaxis,:,:,np.newaxis]
-    pred = model.predict(pred)
+def detectArrow(sess, image, code=True):
+    pred = np.array(image.convert('L'), np.float32)[np.newaxis,:,:,np.newaxis] 
+    pred = sess.run(None, {"input_1": pred})[0]
+    #pred = model.predict(pred)
     pred = np.reshape(pred, (192, 704, 7))
     if np.sum(pred) < 400:
         return 0
-    pred = np.argmax(pred, axis=-1)
+    pred = np.array( np.argmax(pred, axis=-1), np.uint8 )
 
     arrow_list = []
     for i in range(6):
@@ -75,8 +76,8 @@ class autoTeachingBoard():
     #   __init__
     #
     #############################################################
-    def __init__(self, model):
-        self.model = model
+    def __init__(self, sess):
+        self.sess = sess
         self.buildGUI()
         self.getGameWindows()
         self.root.mainloop()
@@ -150,6 +151,7 @@ class autoTeachingBoard():
                                sticky='nsew', padx=20, pady=20)
         self.exit_flag = False
         self.keypress_lock = threading.Lock()
+        self.getscreen_lock = threading.Lock()
 
         # Overlay (with starting button)
         self.overlay_visible = tk.BooleanVar()
@@ -204,7 +206,6 @@ class autoTeachingBoard():
 
     def refresh(self):
         self.handler.getAllTitles()
-        #game_list = self.handler.window_titles
         game_list = list(self.handler.window_title_hwnd.keys())
         for i in range(3):
             self.combobox[i].config(values=game_list)
@@ -217,7 +218,7 @@ class autoTeachingBoard():
             img = img.resize((1920, 1080))
             img = img.crop((610,700,1314,892))
             
-            arrow_list = detectArrow(self.model, img, code=False)
+            arrow_list = detectArrow(self.sess, img, code=False)
 
             img = ImageTk.PhotoImage(img)#[700:892, 610:1314]
             if not self.test_flag.get():
@@ -291,13 +292,20 @@ class autoTeachingBoard():
 
     def startDetect(self, th, process):
         time.sleep(1)
+        print(th, "start")
         while(not self.exit_flag):
-            screenshot = self.handler.background_screenshot(self.combobox[th].get())
-            
+            self.getscreen_lock.acquire()
+            try:
+                screenshot = self.handler.background_screenshot(self.combobox[th].get())
+            except Exception as err:
+                print(err)
+            finally:
+                self.getscreen_lock.release()
+
             img = Image.fromarray(screenshot)
             img = img.resize((1920, 1080))
             img = img.crop((610,700,1314,892))
-            arrow_list = detectArrow(self.model, img, code=True)
+            arrow_list = detectArrow(self.sess, img, code=True)
             if arrow_list != 0:
                 msg = keyPressMessageGenerater(arrow_list)
 
@@ -312,11 +320,13 @@ class autoTeachingBoard():
 
                 line = process.stdout.readline()
                 if "failed" in line:
+                    self.keypress_lock.release()
                     break
                 self.keypress_lock.release()
                 time.sleep(15)
 
             time.sleep(0.6)
+        print(th, "stop")
 
     def keypressFunction(self):
         enable_window = []
@@ -325,7 +335,14 @@ class autoTeachingBoard():
                 enable_window.append(i)
 
         program_path = 'Interception/keyPress.exe'
-        process = subprocess.Popen([program_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        process = subprocess.Popen([program_path],
+                                   #shell=True, 
+                                   stdin=subprocess.PIPE, 
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, 
+                                   text=True#,
+                                   #close_fds=True
+                                   )
         
         line = process.stdout.readline() #console application
         self.keypress_message.destroy()
